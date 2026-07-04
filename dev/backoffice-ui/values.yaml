@@ -1,7 +1,7 @@
 ui:
   image:
     repository: sybew/backoffice
-    tag: 7main
+    tag: main
     pullPolicy: Always
   nameOverride: backoffice-ui
   fullnameOverride: backoffice-ui
