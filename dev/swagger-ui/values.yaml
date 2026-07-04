@@ -1,0 +1,2 @@
+# Không có cấu hình override động từ Jenkins cho swagger-ui
+# Sử dụng cấu hình mặc định từ k8s/charts/swagger-ui/values.yaml
