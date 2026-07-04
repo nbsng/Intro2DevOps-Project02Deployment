@@ -1,9 +1,0 @@
-backend:
-  image:
-    repository: sybew/webhook
-    tag: main
-    pullPolicy: Always
-
-  nameOverride: webhook
-  fullnameOverride: webhook
-  databaseName: webhook
