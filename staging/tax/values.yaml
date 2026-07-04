@@ -1,6 +1,5 @@
 # Auto-generated — staging initial values
+# Image tag sẽ được Jenkins cập nhật khi release Git Tag v1.2.3
 backend:
   image:
     tag: "latest"
-  ingress:
-    host: staging-backoffice.yas.local.com

@@ -1,6 +1,4 @@
 # Auto-generated — staging initial values
-backend:
+ui:
   image:
     tag: "latest"
-  ingress:
-    host: staging-backoffice.yas.local.com

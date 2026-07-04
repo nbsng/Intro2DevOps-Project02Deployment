@@ -1,9 +1,6 @@
-
-# Tự động thêm cấu hình Ingress để tránh xung đột với namespace yas
-ingress:
-  enabled: true
-  hosts:
-    - host: staging-storefront.yas.local.com
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+# Auto-generated — staging initial values
+backend:
+  image:
+    tag: "latest"
+  ingress:
+    host: staging-storefront.yas.local.com
