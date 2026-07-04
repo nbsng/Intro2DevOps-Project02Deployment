@@ -3,7 +3,7 @@
 ingress:
   enabled: true
   hosts:
-    - host: staging-api.yas.local.com
+    - host: staging-backoffice.yas.local.com
       paths:
-        - path: /swagger-ui
+        - path: /
           pathType: ImplementationSpecific

@@ -5,5 +5,5 @@ ingress:
   hosts:
     - host: staging-api.yas.local.com
       paths:
-        - path: /swagger-ui
+        - path: /media
           pathType: ImplementationSpecific

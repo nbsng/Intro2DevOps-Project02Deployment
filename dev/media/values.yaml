@@ -10,7 +10,7 @@ backend:
   ingress:
     enabled: true
     className: nginx
-    host: api.yas.local.com
+    host: dev-api.yas.local.com
     path: /media
     pathType: Prefix
   extraVolumes:
