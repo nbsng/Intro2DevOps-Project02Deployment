@@ -1,0 +1,11 @@
+backend:
+  image:
+    repository: sybew/promotion
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: promotion
+  fullnameOverride: promotion
+  databaseName: promotion
+  ingress:
+    enabled: false

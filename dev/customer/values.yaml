@@ -1,0 +1,23 @@
+backend:
+  image:
+    repository: sybew/customer
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: customer
+  fullnameOverride: customer
+  databaseName: customer
+  ingress:
+    enabled: false
+  extraEnvFroms:
+    - secretRef:
+        name: yas-keycloak-credentials-secret
+  extraVolumes:
+    - name: customer-application
+      configMap:
+        name: customer-application-configmap
+  extraVolumeMounts:
+    - name: customer-application
+      mountPath: /opt/yas/customer
+  extraApplicationConfigPaths:
+    - /opt/yas/customer/customer-application.yaml

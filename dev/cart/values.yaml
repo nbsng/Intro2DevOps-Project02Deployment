@@ -1,0 +1,20 @@
+backend:
+  image:
+    repository: sybew/cart
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: cart
+  fullnameOverride: cart
+  databaseName: cart
+  ingress:
+    enabled: false
+  extraVolumes:
+    - name: cart-application-config
+      configMap:
+        name: cart-application-configmap
+  extraVolumeMounts:
+    - name: cart-application-config
+      mountPath: /opt/yas/cart
+  extraApplicationConfigPaths:
+    - /opt/yas/cart/cart-application.yaml

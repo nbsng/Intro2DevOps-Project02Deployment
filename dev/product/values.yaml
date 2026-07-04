@@ -1,0 +1,20 @@
+backend:
+  image:
+    repository: sybew/product
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: product
+  fullnameOverride: product
+  databaseName: product
+  ingress:
+    enabled: false
+  extraVolumes:
+    - name: product-application-config
+      configMap:
+        name: product-application-configmap
+  extraVolumeMounts:
+    - name: product-application-config
+      mountPath: /opt/yas/product
+  extraApplicationConfigPaths:
+    - /opt/yas/product/product-application.yaml  

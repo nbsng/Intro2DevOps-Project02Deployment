@@ -1,0 +1,25 @@
+backend:
+  image:
+    repository: sybew/media
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: media
+  fullnameOverride: media
+  databaseName: media
+  ingress:
+    enabled: true
+    className: nginx
+    host: api.yas.local.com
+    path: /media
+    pathType: Prefix
+  extraVolumes:
+    - name: media-application
+      configMap:
+        name: media-application-configmap
+  extraVolumeMounts:
+    - name: media-application
+      mountPath: /opt/yas/media
+  extraApplicationConfigPaths:
+    - /opt/yas/media/media-application.yaml
+

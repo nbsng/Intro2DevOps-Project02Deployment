@@ -1,0 +1,11 @@
+backend:
+  image:
+    repository: sybew/inventory
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: inventory
+  fullnameOverride: inventory
+  databaseName: inventory
+  ingress:
+    enabled: false

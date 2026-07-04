@@ -1,0 +1,20 @@
+backend:
+  image:
+    repository: sybew/order
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: order
+  fullnameOverride: order
+  databaseName: order
+  ingress:
+    enabled: false
+  extraVolumes:
+    - name: order-application-config
+      configMap:
+        name: order-application-configmap
+  extraVolumeMounts:
+    - name: order-application-config
+      mountPath: /opt/yas/order
+  extraApplicationConfigPaths:
+    - /opt/yas/order/order-application.yaml  

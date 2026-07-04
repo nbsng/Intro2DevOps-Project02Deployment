@@ -1,0 +1,11 @@
+backend:
+  image:
+    repository: sybew/rating
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: rating
+  fullnameOverride: rating
+  databaseName: rating
+  ingress:
+    enabled: false

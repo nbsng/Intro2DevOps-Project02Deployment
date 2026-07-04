@@ -1,0 +1,20 @@
+backend:
+  image:
+    repository: sybew/payment-paypal
+    tag: 749d2cd7
+    pullPolicy: Always
+
+  nameOverride: payment-paypal
+  fullnameOverride: payment-paypal
+  databaseName: payment-paypal
+  ingress:
+    enabled: false
+  extraVolumes:
+    - name: payment-paypal-application-config
+      configMap:
+        name: payment-paypal-application-configmap
+  extraVolumeMounts:
+    - name: payment-paypal-application-config
+      mountPath: /opt/yas/payment-paypal
+  extraApplicationConfigPaths:
+    - /opt/yas/payment-paypal/payment-paypal-application.yaml

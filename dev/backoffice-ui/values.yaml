@@ -1,0 +1,9 @@
+ui:
+  image:
+    repository: sybew/backoffice
+    tag: 749d2cd7
+    pullPolicy: Always
+  nameOverride: backoffice-ui
+  fullnameOverride: backoffice-ui
+  ingress:
+    enabled: false

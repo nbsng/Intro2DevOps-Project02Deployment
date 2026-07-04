@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backoffice-nextjs
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ExternalName
+  externalName: backoffice-ui.{{ .Release.Namespace }}.svc.cluster.local
