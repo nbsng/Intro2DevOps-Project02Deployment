@@ -1,7 +1,7 @@
 backend:
   image:
     repository: sybew/inventory
-    tag: 749d2cd7
+    tag: main
     pullPolicy: Always
 
   nameOverride: inventory

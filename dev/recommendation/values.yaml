@@ -1,7 +1,7 @@
 backend:
   image:
     repository: sybew/recommendation
-    tag: 749d2cd7
+    tag: main
     pullPolicy: Always
 
   nameOverride: recommendation
