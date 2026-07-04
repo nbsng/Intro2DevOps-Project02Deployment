@@ -3,3 +3,5 @@
 backend:
   image:
     tag: "main"
+  ingress:
+    host: dev-storefront.yas.local.com
