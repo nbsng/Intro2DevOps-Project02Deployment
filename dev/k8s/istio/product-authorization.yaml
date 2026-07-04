@@ -1,0 +1,38 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: product-allow-selected-services
+  namespace: yas
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: product
+      app.kubernetes.io/instance: product
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/yas/sa/cart
+              - cluster.local/ns/yas/sa/order
+              # inventory va search co code goi truc tiep product API
+              # (inventory/ProductService.java, search/ProductSyncDataService.java);
+              # thieu 2 SA nay thi dong bo Elasticsearch va inventory se bi RBAC deny.
+              - cluster.local/ns/yas/sa/inventory
+              - cluster.local/ns/yas/sa/search
+              - cluster.local/ns/yas/sa/recommendation
+              - cluster.local/ns/yas/sa/storefront-bff
+              - cluster.local/ns/yas/sa/backoffice-bff
+              # ingress-nginx da duoc inject sidecar (xem README muc 3.1) de
+              # api.yas.local.com/product va swagger-ui van truy cap duoc.
+              # Kiem tra dung ten SA bang: kubectl get sa -n ingress-nginx
+              - cluster.local/ns/ingress-nginx/sa/ingress-nginx
+      to:
+        - operation:
+            ports:
+              - "80"
+    - to:
+        - operation:
+            ports:
+              - "8090"
+

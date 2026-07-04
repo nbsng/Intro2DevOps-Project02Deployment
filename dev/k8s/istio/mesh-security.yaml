@@ -1,0 +1,25 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: yas-mtls-strict
+  namespace: yas
+# Luu y: KHONG dung portLevelMtls o day. PeerAuthentication namespace-wide
+# (khong co selector) khong duoc phep khai bao portLevelMtls - istiod se tu choi
+# manifest. Probe cua kubelet van hoat dong vi sidecar injector tu rewrite
+# httpGet probe sang port 15020; telemetry cho Kiali lay tu Envoy (port 15090)
+# nen khong can mo PERMISSIVE cho port metric 8090.
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: yas-default-mtls
+  namespace: yas
+spec:
+  host: "*.yas.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+
