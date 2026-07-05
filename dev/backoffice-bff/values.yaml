@@ -4,4 +4,4 @@ backend:
   image:
     tag: "main"
   ingress:
-    host: dev-backoffice.yas.local.com
+    host: backoffice.dev.yas.local.com

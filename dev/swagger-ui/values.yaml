@@ -3,7 +3,7 @@
 ingress:
   enabled: true
   hosts:
-    - host: dev-api.yas.local.com
+    - host: api.dev.yas.local.com
       paths:
         - path: /swagger-ui
           pathType: ImplementationSpecific
