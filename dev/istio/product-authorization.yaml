@@ -7,7 +7,6 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: product
-      app.kubernetes.io/instance: product
   action: ALLOW
   rules:
     - from:

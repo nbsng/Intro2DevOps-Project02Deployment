@@ -49,11 +49,11 @@ Các bước `kubectl run` / `kubectl exec` / `kubectl scale` trong các mục t
 
 ```bash
 kubectl get ns
-kubectl get pods -n yas
-kubectl get svc -n yas
+kubectl get pods -n dev
+kubectl get svc -n dev
 ```
 
-YAS chart trong repo deploy các service vào namespace `yas`; service name thường là `cart`, `order`, `product`, `storefront-bff`, `backoffice-bff`, ...
+YAS chart trong repo deploy các service vào namespace `dev`; service name thường là `cart`, `order`, `product`, `storefront-bff`, `backoffice-bff`, ...
 
 ## 2. Cài Istio và Kiali
 
@@ -74,10 +74,10 @@ Nếu cluster không cho tải internet trực tiếp trên master, tải thư m
 ## 3. Bật sidecar injection cho namespace YAS
 
 ```bash
-kubectl label namespace yas istio-injection=enabled --overwrite
-kubectl rollout restart deployment -n yas
-kubectl rollout status deployment/product -n yas
-kubectl get pods -n yas -o jsonpath='{range .items[*]}{.metadata.name}{" containers="}{.spec.containers[*].name}{"\n"}{end}'
+kubectl label namespace dev istio-injection=enabled --overwrite
+kubectl rollout restart deployment -n dev
+kubectl rollout status deployment/product -n dev
+kubectl get pods -n dev -o jsonpath='{range .items[*]}{.metadata.name}{" containers="}{.spec.containers[*].name}{"\n"}{end}'
 ```
 
 Mỗi pod YAS cần có container `istio-proxy`.
@@ -85,7 +85,7 @@ Mỗi pod YAS cần có container `istio-proxy`.
 Lưu ý về `sampledata`: nếu chưa seed data, hãy chạy `sampledata` xong TRƯỚC khi apply các AuthorizationPolicy ở mục 4, vì service account `sampledata` không nằm trong allow-list của `product`. Sau khi có data thì scale về 0:
 
 ```bash
-kubectl scale deployment/sampledata -n yas --replicas=0
+kubectl scale deployment/sampledata -n dev --replicas=0
 ```
 
 ## 3.1. Cho ingress-nginx tham gia mesh (BẮT BUỘC khi bật STRICT)
@@ -107,7 +107,7 @@ kubectl get pods -n ingress-nginx -o jsonpath='{.items[0].spec.serviceAccountNam
 
 Nếu kết quả khác `ingress-nginx` hoặc namespace khác, sửa lại principal `cluster.local/ns/ingress-nginx/sa/ingress-nginx` trong `product-authorization.yaml` và `search-authorization.yaml` cho khớp.
 
-Nếu vì lý do nào đó không thể inject ingress-nginx (ví dụ controller chạy hostNetwork), phương án dự phòng để demo UI: `kubectl port-forward -n yas svc/storefront-ui 3000:3000` và bỏ qua đường ingress.
+Nếu vì lý do nào đó không thể inject ingress-nginx (ví dụ controller chạy hostNetwork), phương án dự phòng để demo UI: `kubectl port-forward -n dev svc/storefront-ui 3000:3000` và bỏ qua đường ingress.
 
 ## 4. Apply manifest service mesh
 
@@ -132,9 +132,9 @@ kubectl apply -f search-authorization.yaml
 Kiểm tra:
 
 ```bash
-kubectl get peerauthentication,destinationrule,virtualservice,authorizationpolicy -n yas
-istioctl x describe svc product -n yas
-istioctl proxy-config routes deploy/order -n yas --name 80 -o json | grep -i retry -n
+kubectl get peerauthentication,destinationrule,virtualservice,authorizationpolicy -n dev
+istioctl x describe svc product -n dev
+istioctl proxy-config routes deploy/order -n dev --name 80 -o json | grep -i retry -n
 ```
 
 Lưu ý: lệnh `istioctl authn tls-check` đã bị gỡ khỏi istioctl từ bản 1.5, dùng `istioctl x describe` như trên (output sẽ hiện PeerAuthentication STRICT và DestinationRule ISTIO_MUTUAL áp lên service).
@@ -144,9 +144,9 @@ Lưu ý: lệnh `istioctl authn tls-check` đã bị gỡ khỏi istioctl từ b
 Kiểm tra sidecar và mTLS:
 
 ```bash
-kubectl get pod -n yas -l app.kubernetes.io/name=cart
-istioctl proxy-config secret deploy/cart -n yas
-istioctl x describe svc cart -n yas
+kubectl get pod -n dev -l app.kubernetes.io/name=cart
+istioctl proxy-config secret deploy/cart -n dev
+istioctl x describe svc cart -n dev
 ```
 
 Test trực tiếp STRICT mTLS chặn plaintext: tạo pod ở namespace KHÔNG có sidecar (ví dụ `default`) rồi curl vào service YAS:
@@ -154,55 +154,50 @@ Test trực tiếp STRICT mTLS chặn plaintext: tạo pod ở namespace KHÔNG 
 ```bash
 kubectl run plain-client -n default --image=curlimages/curl:8.8.0 --restart=Never -- sleep 3600
 kubectl wait -n default --for=condition=Ready pod/plain-client --timeout=120s
-kubectl exec -n default plain-client -- curl -v --max-time 5 http://product.yas/product/actuator/health
+kubectl exec -n default plain-client -- curl -v --max-time 5 http://product.dev/product/actuator/health
 ```
 
 Kết quả mong đợi: connection bị reset (curl exit code 56 hoặc "Connection reset by peer") vì client không có mTLS cert - đây là evidence mạnh nhất cho STRICT.
 
 Evidence cần chụp:
 
-- output `kubectl get pods -n yas` thấy mỗi pod có `2/2`.
-- output `istioctl x describe svc cart -n yas` hiện PeerAuthentication STRICT.
+- output `kubectl get pods -n dev` thấy mỗi pod có `2/2`.
+- output `istioctl x describe svc cart -n dev` hiện PeerAuthentication STRICT.
 - output `istioctl proxy-config secret` hiện cert `default` và `ROOTCA` trạng thái ACTIVE.
 - curl plaintext từ pod ngoài mesh bị reset.
 - Kiali edge giữa service có biểu tượng lock/mTLS.
 
 ## 6. Kịch bản test authorization policy
 
-Policy trong file `product-authorization.yaml` chỉ cho các service account `cart`, `order`, `inventory`, `search`, `recommendation`, `storefront-bff`, `backoffice-bff` và `ingress-nginx` gọi vào `product` port `80`. (`inventory` và `search` bắt buộc phải có vì code của chúng gọi trực tiếp product API; `ingress-nginx` để api/swagger-ui vẫn hoạt động.)
+Policy trong file `product-authorization.yaml` chỉ cho các service account `cart`, `order`, `inventory`, `search`, `storefront-bff`, `backoffice-bff` và `ingress-nginx` gọi vào `product` port `80`. (`inventory` và `search` bắt buộc phải có vì code của chúng gọi trực tiếp product API; `ingress-nginx` để api/swagger-ui vẫn hoạt động.)
 
 Policy trong file `search-authorization.yaml` chỉ cho `storefront-bff`, `backoffice-bff`, `product`, `ingress-nginx` gọi vào `search` port `80`. Đây là target tốt để demo AuthorizationPolicy cho chức năng tìm kiếm.
 
 Tạo pod debug nằm ngoài allow-list:
 
 ```bash
-kubectl run curl-denied -n yas --image=curlimages/curl:8.8.0 --restart=Never -- sleep 3600
-kubectl wait -n yas --for=condition=Ready pod/curl-denied --timeout=120s
-kubectl exec -n yas curl-denied -- curl -v --max-time 5 http://product.yas:80/product/actuator/health
+kubectl run curl-denied -n dev --image=curlimages/curl:8.8.0 --restart=Never -- sleep 3600
+kubectl wait -n dev --for=condition=Ready pod/curl-denied --timeout=120s
+kubectl exec -n dev curl-denied -- curl -v --max-time 5 "http://product.dev:80/product/storefront/products?page=0&size=1"
 ```
 
-Kết quả mong đợi: bị chặn, thường là `RBAC: access denied` hoặc HTTP `403`.
+Kết quả mong đợi: bị chặn — HTTP `403` với body `RBAC: access denied`.
 
-Test từ service được phép, ví dụ `cart`:
-
-```bash
-CART_POD=$(kubectl get pod -n yas -l app.kubernetes.io/name=cart -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n yas "$CART_POD" -c cart -- curl -v --max-time 5 http://product.yas:80/product/actuator/health
-```
-
-Kết quả mong đợi: không bị RBAC deny. Nếu endpoint bị Spring Security chặn thì có thể nhận `401/403` từ ứng dụng, nhưng không được có chuỗi `RBAC: access denied`. Nếu image `cart` không có `curl`, dùng flow thật của app hoặc tạo debug pod dùng serviceAccount `cart` (flag `--serviceaccount` đã bị gỡ khỏi kubectl từ bản 1.24, phải dùng `--overrides`):
+Test từ service được phép. Image `cart` không có sẵn `curl`, nên tạo debug pod chạy với serviceAccount `cart` (flag `--serviceaccount` đã bị gỡ khỏi kubectl từ bản 1.24, phải dùng `--overrides`):
 
 ```bash
-kubectl run curl-allowed -n yas --image=curlimages/curl:8.8.0 --restart=Never \
+kubectl run curl-allowed -n dev --image=curlimages/curl:8.8.0 --restart=Never \
   --overrides='{"spec":{"serviceAccountName":"cart"}}' -- sleep 3600
-kubectl wait -n yas --for=condition=Ready pod/curl-allowed --timeout=120s
-kubectl exec -n yas curl-allowed -- curl -v --max-time 5 http://product.yas:80/product/actuator/health
+kubectl wait -n dev --for=condition=Ready pod/curl-allowed --timeout=120s
+kubectl exec -n dev curl-allowed -- curl -v --max-time 5 "http://product.dev:80/product/storefront/products?page=0&size=1"
 ```
+
+Kết quả mong đợi: HTTP `200`, không có chuỗi `RBAC: access denied` → SA `cart` nằm trong allow-list nên request chạm tới app. (Nếu gọi `/product/actuator/health` sẽ ra `500` vì actuator nằm ở port `8090`, không phải port 80 — không liên quan tới mesh.)
 
 Test deny với `search` cũng tương tự:
 
 ```bash
-kubectl exec -n yas curl-denied -- curl -v --max-time 5 http://search.yas:80/search/actuator/health
+kubectl exec -n dev curl-denied -- curl -v --max-time 5 http://search.dev:80/search/actuator/health
 ```
 
 Kết quả mong đợi: `RBAC: access denied` hoặc HTTP `403`.
@@ -214,21 +209,21 @@ Retry policy nằm trong `tax-retry.yaml`: nếu upstream `tax` trả `5xx`, res
 Kiểm tra config đã nằm trong proxy:
 
 ```bash
-istioctl proxy-config routes deploy/order -n yas --name 80 -o json | grep -A20 -i retryPolicy
+istioctl proxy-config routes deploy/order -n dev --name 80 -o json | grep -A20 -i retryPolicy
 ```
 
 Chạy request từ client có sidecar vào `tax`. Dùng API nào có thể tạo lỗi 500 trong môi trường của bạn; nếu không có endpoint lỗi 500, có thể tạm thời scale `tax` về 0 để tạo connect failure rồi scale lại:
 
 ```bash
-ORDER_POD=$(kubectl get pod -n yas -l app.kubernetes.io/name=order -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n yas "$ORDER_POD" -c istio-proxy -- pilot-agent request GET stats | grep upstream_rq_retry
+ORDER_POD=$(kubectl get pod -n dev -l app.kubernetes.io/name=order -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -n dev "$ORDER_POD" -c istio-proxy -- pilot-agent request GET stats | grep upstream_rq_retry
 
-kubectl scale deployment/tax -n yas --replicas=0
-kubectl exec -n yas "$ORDER_POD" -c order -- curl -v --max-time 8 http://tax.yas:80/tax/actuator/health || true
-kubectl scale deployment/tax -n yas --replicas=1
-kubectl rollout status deployment/tax -n yas
+kubectl scale deployment/tax -n dev --replicas=0
+kubectl exec -n dev "$ORDER_POD" -c order -- curl -v --max-time 8 http://tax.dev:80/tax/actuator/health || true
+kubectl scale deployment/tax -n dev --replicas=1
+kubectl rollout status deployment/tax -n dev
 
-kubectl exec -n yas "$ORDER_POD" -c istio-proxy -- pilot-agent request GET stats | grep upstream_rq_retry
+kubectl exec -n dev "$ORDER_POD" -c istio-proxy -- pilot-agent request GET stats | grep upstream_rq_retry
 ```
 
 Evidence cần chụp/log:
@@ -257,7 +252,7 @@ Mở trình duyệt: `http://<master-tailscale-ip>:20001/kiali`.
 
 Trong Kiali:
 
-1. Chọn namespace `yas`.
+1. Chọn namespace `dev`.
 2. Vào Graph.
 3. Display: bật `Traffic`, `Security`, `Service Nodes`.
 4. Generate traffic bằng cách truy cập storefront/backoffice hoặc curl các service.
@@ -271,14 +266,13 @@ backoffice-ui -> backoffice-bff -> product/inventory/order/...
 cart -> product
 order -> product/cart/customer/tax/promotion
 search -> product
-recommendation -> product
 ```
 
-Cần ghi rõ trong báo cáo: các edge trong namespace `yas` được mã hóa mTLS; `product` và `search` chỉ chấp nhận inbound từ allow-list trong AuthorizationPolicy; retry policy được áp dụng cho traffic tới `tax`.
+Cần ghi rõ trong báo cáo: các edge trong namespace `dev` được mã hóa mTLS; `product` và `search` chỉ chấp nhận inbound từ allow-list trong AuthorizationPolicy; retry policy được áp dụng cho traffic tới `tax`.
 
 ## 9. Dọn dẹp pod test
 
 ```bash
-kubectl delete pod curl-denied curl-allowed -n yas --ignore-not-found
+kubectl delete pod curl-denied curl-allowed -n dev --ignore-not-found
 kubectl delete pod plain-client -n default --ignore-not-found
 ```

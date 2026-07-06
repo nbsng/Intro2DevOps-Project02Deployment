@@ -27,16 +27,16 @@ flowchart TD
 
 | # | Khái niệm | File cấu hình | Lệnh kiểm tra hiệu lực | Bằng chứng mong đợi |
 |---|-----------|----------------|--------------------------|----------------------|
-| 1 | Sidecar injection | (label namespace, không có file YAML riêng) | `kubectl get pods -n yas` | Mỗi pod `2/2` container |
-| 2 | mTLS bắt buộc (PeerAuthentication) | [`mesh-security.yaml`](mesh-security.yaml) — `PeerAuthentication: STRICT` | `istioctl x describe svc product -n yas` | Output có dòng `PeerAuthentication STRICT` |
-| 2 | mTLS phía gửi (DestinationRule) | [`mesh-security.yaml`](mesh-security.yaml) — `DestinationRule: ISTIO_MUTUAL` | `istioctl proxy-config secret deploy/product -n yas` | Cert `default` + `ROOTCA` trạng thái `ACTIVE` |
-| 2 | Bằng chứng mTLS chặn plaintext | — | `kubectl exec plain-client -- curl http://product.yas/...` (pod ở `default`, không sidecar) | `curl exit 56` / "Connection reset by peer" |
-| 3 | Định danh dịch vụ (SPIFFE identity) | `cluster.local/ns/yas/sa/<serviceaccount>` trong [`product-authorization.yaml`](product-authorization.yaml) | `kubectl get sa -n yas` | Tên SA khớp `fullnameOverride` từng chart (`cart`, `order`, `tax`, ...) |
+| 1 | Sidecar injection | (label namespace, không có file YAML riêng) | `kubectl get pods -n dev` | Mỗi pod `2/2` container |
+| 2 | mTLS bắt buộc (PeerAuthentication) | [`mesh-security.yaml`](mesh-security.yaml) — `PeerAuthentication: STRICT` | `istioctl x describe svc product -n dev` | Output có dòng `PeerAuthentication STRICT` |
+| 2 | mTLS phía gửi (DestinationRule) | [`mesh-security.yaml`](mesh-security.yaml) — `DestinationRule: ISTIO_MUTUAL` | `istioctl proxy-config secret deploy/product -n dev` | Cert `default` + `ROOTCA` trạng thái `ACTIVE` |
+| 2 | Bằng chứng mTLS chặn plaintext | — | `kubectl exec plain-client -- curl http://product.dev/...` (pod ở `default`, không sidecar) | `curl exit 56` / "Connection reset by peer" |
+| 3 | Định danh dịch vụ (SPIFFE identity) | `cluster.local/ns/dev/sa/<serviceaccount>` trong [`product-authorization.yaml`](product-authorization.yaml) | `kubectl get sa -n dev` | Tên SA khớp `fullnameOverride` từng chart (`cart`, `order`, `tax`, ...) |
 | 3 | AuthorizationPolicy — allow-list cho `product` | [`product-authorization.yaml`](product-authorization.yaml) | `curl` từ pod `curl-denied` (default SA) vs pod với `serviceAccountName: cart` | Denied → `RBAC: access denied`/403; Allowed → không có chuỗi RBAC deny |
-| 3 | AuthorizationPolicy — allow-list cho `search` | [`search-authorization.yaml`](search-authorization.yaml) | tương tự, target `search.yas:80` | tương tự |
-| 4 | Retry policy (VirtualService) | [`tax-retry.yaml`](tax-retry.yaml) — `retries.attempts: 3, perTryTimeout: 2s` | `istioctl proxy-config routes deploy/order -n yas --name 80 -o json \| grep -A20 retryPolicy` | Thấy đúng `numRetries: 3` trong route config |
+| 3 | AuthorizationPolicy — allow-list cho `search` | [`search-authorization.yaml`](search-authorization.yaml) | tương tự, target `search.dev:80` | tương tự |
+| 4 | Retry policy (VirtualService) | [`tax-retry.yaml`](tax-retry.yaml) — `retries.attempts: 3, perTryTimeout: 2s` | `istioctl proxy-config routes deploy/order -n dev --name 80 -o json \| grep -A20 retryPolicy` | Thấy đúng `numRetries: 3` trong route config |
 | 4 | Retry — bằng chứng runtime | — | `pilot-agent request GET stats \| grep upstream_rq_retry` trước/sau khi scale `tax` về 0 | Counter `upstream_rq_retry` tăng |
-| 5 | Topology toàn cảnh | (không phải YAML, là quan sát bằng Kiali) | `istioctl dashboard kiali` → namespace `yas` → Graph (bật Traffic + Security) | Edge có icon khóa (mTLS), node `product`/`search` chỉ nhận traffic từ đúng allow-list |
+| 5 | Topology toàn cảnh | (không phải YAML, là quan sát bằng Kiali) | `istioctl dashboard kiali` → namespace `dev` → Graph (bật Traffic + Security) | Edge có icon khóa (mTLS), node `product`/`search` chỉ nhận traffic từ đúng allow-list |
 
 ## Cách dùng khi demo
 

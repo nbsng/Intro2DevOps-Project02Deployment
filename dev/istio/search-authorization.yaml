@@ -7,7 +7,6 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: search
-      app.kubernetes.io/instance: search
   action: ALLOW
   rules:
     - from:

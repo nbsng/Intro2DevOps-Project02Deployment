@@ -13,7 +13,7 @@
   - Control plane: `nbsng-legion-5-15iah7` (`100.100.184.0`)
   - Worker: `devops-project02-worker` (`100.74.174.110`) — node chạy toàn bộ pod YAS.
 - **Service Mesh**: Istio `1.30.2` (istiod, istio-ingressgateway, Kiali `v2.26.0`).
-- **Ứng dụng**: YAS deploy trong namespace `yas` (product, cart, order, customer,
+- **Ứng dụng**: YAS deploy trong namespace `dev` (product, cart, order, customer,
   inventory, tax, media, search, recommendation, rating, storefront-bff/ui,
   backoffice-bff/ui, swagger-ui...).
 - **Hạ tầng phụ trợ** (ngoài phạm vi mesh): `postgres`, `kafka`, `keycloak`, `redis`,
@@ -39,15 +39,15 @@ Client pod ──(1) mTLS handshake──> istio-proxy (Envoy) của pod đích
 ### 2.1. Manifest
 
 File `k8s/istio/mesh-security.yaml` gồm:
-- `PeerAuthentication` mode `STRICT`: bắt buộc mọi inbound vào pod `yas` phải có mTLS.
+- `PeerAuthentication` mode `STRICT`: bắt buộc mọi inbound vào pod `dev` phải có mTLS.
 - `DestinationRule` `ISTIO_MUTUAL`: phía gửi tự đính client cert khi gọi service khác.
 
 Áp dụng sidecar injection và manifest:
 
 ```bash
-# Bật sidecar injection cho namespace yas rồi restart để pod nhận istio-proxy
-kubectl label namespace yas istio-injection=enabled --overwrite
-kubectl rollout restart deployment -n yas
+# Bật sidecar injection cho namespace dev rồi restart để pod nhận istio-proxy
+kubectl label namespace dev istio-injection=enabled --overwrite
+kubectl rollout restart deployment -n dev
 
 # Áp dụng cấu hình mTLS
 kubectl apply -f k8s/istio/mesh-security.yaml
@@ -66,15 +66,15 @@ order-55d78785f7-4nmdt     2/2     Running
 Kiểm tra resource đã vào:
 
 ```bash
-kubectl get peerauthentication,destinationrule -n yas
+kubectl get peerauthentication,destinationrule -n dev
 ```
 
 ```
 NAME                                  MODE     AGE
-peerauthentication.../yas-mtls-strict STRICT   ...
+peerauthentication.../dev-mtls-strict STRICT   ...
 
 NAME                                  HOST                      AGE
-destinationrule.../yas-default-mtls   *.yas.svc.cluster.local   ...
+destinationrule.../dev-default-mtls   *.dev.svc.cluster.local   ...
 ```
 
 ### 2.2. Bằng chứng: STRICT mTLS chặn traffic plaintext
@@ -84,13 +84,13 @@ curl vào `product`:
 
 ```bash
 kubectl run plain-client -n default --image=curlimages/curl:8.8.0 --restart=Never -- sleep 3600
-kubectl exec -n default plain-client -- curl -v --max-time 5 http://product.yas/product/actuator/health
+kubectl exec -n default plain-client -- curl -v --max-time 5 http://product.dev/product/actuator/health
 ```
 
 **Kết quả:**
 
 ```
-* Connected to product.yas (10.109.27.244) port 80
+* Connected to product.dev (10.109.27.244) port 80
 > GET /product/actuator/health HTTP/1.1
 * Request completely sent off
 * Recv failure: Connection reset by peer
@@ -108,27 +108,27 @@ sự từ chối mọi traffic không mã hóa.
 
 ### 3.1. Manifest
 
-- `k8s/istio/product-authorization.yaml`: chỉ cho service account `cart`, `order`,
-  `inventory`, `search`, `recommendation`, `storefront-bff`, `backoffice-bff`,
+- `/istio/product-authorization.yaml`: chỉ cho service account `cart`, `order`,
+  `inventory`, `search`, `storefront-bff`, `backoffice-bff`,
   `ingress-nginx` gọi vào `product` port 80.
-- `k8s/istio/search-authorization.yaml`: chỉ cho `storefront-bff`, `backoffice-bff`,
+- `/istio/search-authorization.yaml`: chỉ cho `storefront-bff`, `backoffice-bff`,
   `product`, `ingress-nginx` gọi vào `search` port 80.
 
 ```bash
-kubectl apply -f k8s/istio/product-authorization.yaml
-kubectl apply -f k8s/istio/search-authorization.yaml
+kubectl apply -f /istio/product-authorization.yaml
+kubectl apply -f /istio/search-authorization.yaml
 ```
 
 Định danh service dựa trên **SPIFFE identity** gắn với service account:
-`cluster.local/ns/yas/sa/<serviceaccount>`.
+`cluster.local/ns/dev/sa/<serviceaccount>`.
 
 ### 3.2. Bằng chứng: request bị CHẶN (service không được phép)
 
-Pod trong `yas` nhưng dùng **default service account** (không nằm trong allow-list):
+Pod trong `dev` nhưng dùng **default service account** (không nằm trong allow-list):
 
 ```bash
-kubectl run curl-denied -n yas --image=curlimages/curl:8.8.0 --restart=Never -- sleep 3600
-kubectl exec -n yas curl-denied -- curl -v --max-time 5 http://product.yas:80/product/actuator/health
+kubectl run curl-denied -n dev --image=curlimages/curl:8.8.0 --restart=Never -- sleep 3600
+kubectl exec -n dev curl-denied -- curl -v --max-time 5 http://product.dev:80/product/actuator/health
 ```
 
 **Kết quả:**
@@ -150,9 +150,9 @@ từ chối trước khi chạm tới app.
 Pod dùng service account `cart` (có trong allow-list của `product`):
 
 ```bash
-kubectl run curl-allowed -n yas --image=curlimages/curl:8.8.0 --restart=Never \
+kubectl run curl-allowed -n dev --image=curlimages/curl:8.8.0 --restart=Never \
   --overrides='{"spec":{"serviceAccountName":"cart"}}' -- sleep 3600
-kubectl exec -n yas curl-allowed -- curl -v --max-time 5 http://product.yas:80/product/actuator/health
+kubectl exec -n dev curl-allowed -- curl -v --max-time 5 http://product.dev:80/product/actuator/health
 ```
 
 **Kết quả:**
@@ -178,12 +178,12 @@ liên quan tới mesh.
 Có thể xác nhận thêm bằng endpoint API thật (cho ra 200 sạch để chụp):
 
 ```bash
-kubectl exec -n yas curl-allowed -- curl -s -o /dev/null -w "HTTP %{http_code}\n" \
-  "http://product.yas:80/product/storefront/products?page=0&size=1"
+kubectl exec -n dev curl-allowed -- curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+  "http://product.dev:80/product/storefront/products?page=0&size=1"
 # -> HTTP 200 (allowed)
 
-kubectl exec -n yas curl-denied -- curl -s -o /dev/null -w "HTTP %{http_code}\n" \
-  "http://product.yas:80/product/storefront/products?page=0&size=1"
+kubectl exec -n dev curl-denied -- curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+  "http://product.dev:80/product/storefront/products?page=0&size=1"
 # -> HTTP 403 (denied)
 ```
 
@@ -207,7 +207,7 @@ http:
       retryOn: 5xx,reset,connect-failure,refused-stream,gateway-error
     route:
       - destination:
-          host: tax.yas.svc.cluster.local
+          host: tax.dev.svc.cluster.local
           port: { number: 80 }
 ```
 
@@ -218,7 +218,7 @@ kubectl apply -f k8s/istio/tax-retry.yaml
 ### 4.2. Bằng chứng 1: retry policy đã nằm trong route config của Envoy
 
 ```bash
-istioctl proxy-config routes deploy/order -n yas --name 80 -o json | grep -A20 -i retryPolicy
+istioctl proxy-config routes deploy/order -n dev --name 80 -o json | grep -A20 -i retryPolicy
 ```
 
 Block gắn với `virtual-service/tax-retry`:
@@ -231,7 +231,7 @@ Block gắn với `virtual-service/tax-retry`:
 },
 "maxGrpcTimeout": "10s",
 "metadata": { "filterMetadata": { "istio": {
-    "config": ".../namespaces/yas/virtual-service/tax-retry" } } }
+    "config": ".../namespaces/dev/virtual-service/tax-retry" } } }
 ```
 
 > **Lưu ý phân biệt:** các route khác hiển thị `numRetries: 2` là **retry mặc định Istio
@@ -246,14 +246,14 @@ thực nhận** cho một lần client gọi. Endpoint `/tax/actuator/health` tr
 (khớp `retryOn: 5xx`) nên kích hoạt retry:
 
 ```bash
-TAX_POD=$(kubectl get pod -n yas -l app.kubernetes.io/name=tax -o jsonpath='{.items[0].metadata.name}')
-BEFORE=$(kubectl logs -n yas "$TAX_POD" -c tax | grep -c "Error: URI: /actuator/health")
+TAX_POD=$(kubectl get pod -n dev -l app.kubernetes.io/name=tax -o jsonpath='{.items[0].metadata.name}')
+BEFORE=$(kubectl logs -n dev "$TAX_POD" -c tax | grep -c "Error: URI: /actuator/health")
 
 # 1 request duy nhất từ client
-kubectl exec -n yas curl-allowed -- curl -s -o /dev/null -w "client thấy HTTP %{http_code}\n" \
-  --max-time 10 http://tax.yas:80/tax/actuator/health
+kubectl exec -n dev curl-allowed -- curl -s -o /dev/null -w "client thấy HTTP %{http_code}\n" \
+  --max-time 10 http://tax.dev:80/tax/actuator/health
 
-AFTER=$(kubectl logs -n yas "$TAX_POD" -c tax | grep -c "Error: URI: /actuator/health")
+AFTER=$(kubectl logs -n dev "$TAX_POD" -c tax | grep -c "Error: URI: /actuator/health")
 echo "tax nhận $((AFTER-BEFORE)) request cho 1 lần client gọi"
 ```
 
@@ -289,14 +289,14 @@ kubectl port-forward -n istio-system svc/kiali 20001:20001 --address 0.0.0.0
 
 # Sinh traffic để đồ thị có cạnh
 for i in $(seq 1 30); do
-  kubectl exec -n yas curl-allowed -- curl -s -o /dev/null --max-time 3 "http://product.yas:80/product/storefront/products?page=0&size=2"
-  kubectl exec -n yas curl-allowed -- curl -s -o /dev/null --max-time 3 "http://tax.yas:80/tax/actuator/health"
-  kubectl exec -n yas curl-allowed -- curl -s -o /dev/null --max-time 3 "http://inventory.yas:80/inventory/actuator/health"
-  kubectl exec -n yas curl-allowed -- curl -s -o /dev/null --max-time 3 "http://media.yas:80/media/actuator/health"
+  kubectl exec -n dev curl-allowed -- curl -s -o /dev/null --max-time 3 "http://product.dev:80/product/storefront/products?page=0&size=2"
+  kubectl exec -n dev curl-allowed -- curl -s -o /dev/null --max-time 3 "http://tax.dev:80/tax/actuator/health"
+  kubectl exec -n dev curl-allowed -- curl -s -o /dev/null --max-time 3 "http://inventory.dev:80/inventory/actuator/health"
+  kubectl exec -n dev curl-allowed -- curl -s -o /dev/null --max-time 3 "http://media.dev:80/media/actuator/health"
 done
 ```
 
-Trong Kiali: chọn namespace `yas` → **Graph** → Display bật `Traffic`, `Security`,
+Trong Kiali: chọn namespace `dev` → **Graph** → Display bật `Traffic`, `Security`,
 `Service Nodes` → chụp màn hình.
 
 *(Chèn 2 ảnh chụp: (a) toàn cảnh topology, (b) chi tiết các cạnh có khóa mTLS.)*
@@ -306,11 +306,11 @@ Trong Kiali: chọn namespace `yas` → **Graph** → Display bật `Traffic`, `
 - Mỗi node **vuông** = service, node **tam giác/tròn** = workload/app (tag version
   `latest`).
 - **Cạnh có icon khóa 🔒** = traffic được mã hóa **mTLS** (nhờ PeerAuthentication STRICT +
-  DestinationRule ISTIO_MUTUAL). Thấy rõ trên các cạnh `recommendation → product`,
+  DestinationRule ISTIO_MUTUAL). Thấy rõ trên các cạnh `cart → product`,
   `product → media`, `media → workload`.
 - **Cạnh xanh KHÔNG có khóa** đi tới `postgresql` = kết nối TCP tới database ở namespace
   `postgres`, **không** thuộc mesh (không bật sidecar) nên đúng là không mTLS — khớp với
-  quyết định giới hạn mTLS trong phạm vi `yas`, không ép lên hạ tầng.
+  quyết định giới hạn mTLS trong phạm vi `dev`, không ép lên hạ tầng.
 - **PassthroughCluster** (icon chìa khóa) = traffic thoát ra ngoài mesh tới đích Istio
   không quản lý.
 - `search → kafka-cluster-kafka-brokers` = search giao tiếp event qua Kafka.
@@ -323,7 +323,7 @@ Trong Kiali: chọn namespace `yas` → **Graph** → Display bật `Traffic`, `
    trigger qua API `POST /sampledata/storefront/sampledata`. Phải seed xong (product có
    data) rồi mới scale `sampledata` về 0 và bật mesh.
 
-2. **Cơn bão khởi động khi restart đồng loạt:** `kubectl rollout restart deployment -n yas`
+2. **Cơn bão khởi động khi restart đồng loạt:** `kubectl rollout restart deployment -n dev`
    restart toàn bộ ~15 service cùng lúc trên **một** node → JVM khởi động dồn dập làm CPU
    nghẽn → probe `timeout=1s` fail → pod restart lặp. Node đủ tài nguyên ở steady-state
    (CPU requests 63%, RAM 73%) nên cụm tự hội tụ `2/2` sau vài phút. Nếu kẹt lâu có thể
@@ -343,7 +343,7 @@ Trong Kiali: chọn namespace `yas` → **Graph** → Display bật `Traffic`, `
 |---|---------|-----------|
 | 1 | YAML mTLS + authorization | `mesh-security.yaml`, `product/search-authorization.yaml` đã apply |
 | — | mTLS chặn plaintext | `curl exit 56` — Connection reset by peer |
-| 2 | Kiali topology + giải thích | 2 ảnh graph namespace `yas` với khóa mTLS |
+| 2 | Kiali topology + giải thích | 2 ảnh graph namespace `dev` với khóa mTLS |
 | 3a | Authorization allow/deny | denied → `403 RBAC: access denied`; allowed → app response (không RBAC) |
 | 3b | Retry policy | route config `numRetries:3, perTryTimeout:2s`; 1 client call → tax nhận 4 request |
 | 4 | Test plan + logs | Toàn bộ output curl + lệnh trong báo cáo này |

@@ -4,7 +4,7 @@
 
 | Service | Giữ? | Lý do |
 | --- | --- | --- |
-| product | Có | Product catalog, service trung tâm của shop. Đây là target tốt cho AuthorizationPolicy vì `cart`, `order`, `recommendation`, và các BFF service đều gọi tới nó. |
+| product | Có | Product catalog, service trung tâm của shop. Đây là target tốt cho AuthorizationPolicy vì `cart`, `order`, và các BFF service đều gọi tới nó. |
 | cart | Có | Giỏ hàng, cần cho flow mua hàng và có gọi `product` để validate sản phẩm. |
 | order | Có | Flow checkout/order. Đây là client tốt cho retry demo vì nó gọi các service khác như `tax`, `cart`, `customer`, `product`, và `promotion`. |
 | customer | Có | Dữ liệu profile/address của khách hàng, dùng trong order flow. |
@@ -45,7 +45,7 @@ Tổng cho demo: 14 application services, trong đó `sampledata` được xem n
 - các component trong `istio-system`: `istiod`, ingress/egress gateway, Kiali, Prometheus addon
 - observability stack optional: Grafana, Loki, Tempo, OpenTelemetry Collector
 
-Với deliverable Service Mesh, tập trung mTLS và AuthorizationPolicy vào namespace `yas`. Không ép Istio mTLS lên các namespace infrastructure trừ khi cả nhóm đồng ý và đã test kỹ blast radius.
+Với deliverable Service Mesh, tập trung mTLS và AuthorizationPolicy vào namespace `dev`. Không ép Istio mTLS lên các namespace infrastructure trừ khi cả nhóm đồng ý và đã test kỹ blast radius.
 
 ## Tên riêng theo repo này
 
@@ -58,6 +58,6 @@ Service port của backend apps là `80`, còn actuator/metrics port là `8090`.
 Không dùng tên generic như `catalog-service`, `order-service`, `payment-service`, hoặc port `8080` trừ khi cluster thật của nhóm hiển thị đúng các tên đó bằng:
 
 ```bash
-kubectl get svc -n yas
-kubectl get deploy -n yas
+kubectl get svc -n dev
+kubectl get deploy -n dev
 ```
