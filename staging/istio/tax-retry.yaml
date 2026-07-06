@@ -2,11 +2,10 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: tax-retry
-  namespace: yas
+  namespace: staging
 spec:
   hosts:
     - tax
-    - tax.yas.svc.cluster.local
   gateways:
     - mesh
   http:
@@ -20,7 +19,7 @@ spec:
         retryOn: 5xx,reset,connect-failure,refused-stream,gateway-error
       route:
         - destination:
-            host: tax.yas.svc.cluster.local
+            host: tax
             port:
               number: 80
 

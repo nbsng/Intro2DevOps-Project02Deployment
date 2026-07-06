@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: tax-retry
+  namespace: dev
+spec:
+  hosts:
+    - tax
+  gateways:
+    - mesh
+  http:
+    - name: tax-http-retry
+      # timeout tong phai lon hon (1 lan goc + 3 retry) x perTryTimeout 2s = 8s,
+      # neu de 5s thi cac lan retry cuoi bi cat truoc khi kip chay.
+      timeout: 10s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure,refused-stream,gateway-error
+      route:
+        - destination:
+            host: tax
+            port:
+              number: 80
+

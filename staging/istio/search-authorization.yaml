@@ -2,7 +2,7 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: search-allow-selected-services
-  namespace: yas
+  namespace: staging
 spec:
   selector:
     matchLabels:
@@ -13,10 +13,10 @@ spec:
     - from:
         - source:
             principals:
-              - cluster.local/ns/yas/sa/storefront-bff
-              - cluster.local/ns/yas/sa/backoffice-bff
-              - cluster.local/ns/yas/sa/product
-              # ingress-nginx can duoc phep de api.yas.local.com/search hoat dong
+              - cluster.local/ns/staging/sa/storefront-bff
+              - cluster.local/ns/staging/sa/backoffice-bff
+              - cluster.local/ns/staging/sa/product
+              # ingress-nginx can duoc phep de api.staging.local.com/search hoat dong
               # (xem README muc 3.1). Kiem tra ten SA: kubectl get sa -n ingress-nginx
               - cluster.local/ns/ingress-nginx/sa/ingress-nginx
       to:

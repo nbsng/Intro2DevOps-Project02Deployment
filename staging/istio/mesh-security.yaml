@@ -1,0 +1,21 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: staging-mtls-strict
+  namespace: staging
+
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: staging-default-mtls
+  namespace: staging
+spec:
+  host: "*"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+

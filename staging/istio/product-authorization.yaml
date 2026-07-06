@@ -1,0 +1,31 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: product-allow-selected-services
+  namespace: staging
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: product
+      app.kubernetes.io/instance: product
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/staging/sa/cart
+              - cluster.local/ns/staging/sa/order
+              - cluster.local/ns/staging/sa/inventory
+              - cluster.local/ns/staging/sa/search
+              - cluster.local/ns/staging/sa/storefront-bff
+              - cluster.local/ns/staging/sa/backoffice-bff
+              - cluster.local/ns/ingress-nginx/sa/ingress-nginx
+      to:
+        - operation:
+            ports:
+              - "80"
+    - to:
+        - operation:
+            ports:
+              - "8090"
+
