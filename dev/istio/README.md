@@ -90,14 +90,44 @@ kubectl scale deployment/sampledata -n dev --replicas=0
 
 ## 3.1. Cho ingress-nginx tham gia mesh (BẮT BUỘC khi bật STRICT)
 
-Storefront/backoffice/api đều đi qua ingress-nginx. Khi `PeerAuthentication` mode `STRICT` được bật, pod ingress-nginx (không có sidecar) sẽ gửi plaintext vào các pod YAS và bị từ chối kết nối - toàn bộ web sẽ chết. Fix bằng cách inject sidecar cho ingress-nginx:
+Storefront/backoffice/api đều đi qua ingress-nginx. Khi `PeerAuthentication` mode `STRICT` được bật, pod ingress-nginx (không có sidecar) sẽ gửi plaintext vào các pod YAS và bị reset kết nối (nginx log: `recv() failed (104: Connection reset by peer)`) — toàn bộ web trả 502.
+
+Controller của cluster này là **DaemonSet chạy `hostNetwork: true`** nên KHÔNG THỂ inject sidecar (Istio không hỗ trợ hostNetwork). Quy trình đã test thực tế gồm 4 bước:
 
 ```bash
-kubectl get ns | grep -i ingress
-kubectl label namespace ingress-nginx istio-injection=enabled --overwrite
-kubectl rollout restart deployment -n ingress-nginx
-kubectl get pods -n ingress-nginx   # controller phải là 2/2
+# 1. nginx proxy tới Service VIP thay vì pod IP (bắt buộc: traffic tới pod IP
+#    đi vào PassthroughCluster plaintext, sidecar không áp được mTLS)
+kubectl patch cm ingress-nginx-controller -n ingress-nginx --type merge -p '{"data":{"service-upstream":"true"}}'
+
+# 2. Bật injection cho namespace
+kubectl label ns ingress-nginx istio-injection=enabled
+
+# 3. Tắt hostNetwork, giữ cổng 80/443 trên node bằng hostPort
+kubectl patch ds ingress-nginx-controller -n ingress-nginx --type strategic -p '{
+  "spec":{"template":{"spec":{
+    "hostNetwork": false,
+    "containers":[{"name":"controller","ports":[
+      {"containerPort":80,"name":"http","protocol":"TCP","hostPort":80},
+      {"containerPort":443,"name":"https","protocol":"TCP","hostPort":443},
+      {"containerPort":8443,"name":"webhook","protocol":"TCP"}
+    ]}]
+  }}}}'
+kubectl get pods -n ingress-nginx   # controller phải 2/2, IP dạng 10.244.x.x (pod network)
+
+# 4. Envoy route HTTP theo Host header — hostname ngoài (storefront.dev.yas.local.com)
+#    không khớp service nào -> rơi vào passthrough plaintext -> STRICT reset (503
+#    "upstream connect error"). Fix: upstream-vhost để nginx rewrite Host thành FQDN service:
+for i in storefront-bff backoffice-bff media; do
+  kubectl annotate ingress $i -n dev     nginx.ingress.kubernetes.io/upstream-vhost="$i.dev.svc.cluster.local"     --overwrite
+  kubectl annotate ingress $i -n staging nginx.ingress.kubernetes.io/upstream-vhost="$i.staging.svc.cluster.local" --overwrite
+done
+kubectl annotate ingress swagger-ui-dev     -n dev     nginx.ingress.kubernetes.io/upstream-vhost="swagger-ui-dev.dev.svc.cluster.local"         --overwrite
+kubectl annotate ingress swagger-ui-staging -n staging nginx.ingress.kubernetes.io/upstream-vhost="swagger-ui-staging.staging.svc.cluster.local" --overwrite
 ```
+
+Kiểm tra sau khi làm: `curl -s -o /dev/null -w '%{http_code}\n' -H "Host: storefront.dev.yas.local.com" http://<WORKER_IP>/` phải trả `200`.
+
+**LƯU Ý drift:** các thay đổi trên làm bằng `kubectl` sẽ mất nếu `helm upgrade` ingress-nginx hoặc Jenkins redeploy chart có Ingress. Khi upgrade phải mang theo: `controller.hostNetwork=false`, `controller.hostPort.enabled=true`, `controller.config.service-upstream="true"`, và annotation `upstream-vhost` trong template Ingress của từng chart. KHÔNG annotate các ingress ngoài mesh (keycloak/grafana/kibana/pgadmin/akhq) — backend của chúng không có sidecar, passthrough plaintext hoạt động bình thường.
 
 Kiểm tra tên service account của controller (dùng trong AuthorizationPolicy):
 
@@ -132,12 +162,12 @@ kubectl apply -f search-authorization.yaml
 Kiểm tra:
 
 ```bash
-kubectl get peerauthentication,destinationrule,virtualservice,authorizationpolicy -n dev
+kubectl get peerauthentication,virtualservice,authorizationpolicy -n dev
 istioctl x describe svc product -n dev
 istioctl proxy-config routes deploy/order -n dev --name 80 -o json | grep -i retry -n
 ```
 
-Lưu ý: lệnh `istioctl authn tls-check` đã bị gỡ khỏi istioctl từ bản 1.5, dùng `istioctl x describe` như trên (output sẽ hiện PeerAuthentication STRICT và DestinationRule ISTIO_MUTUAL áp lên service).
+Lưu ý: lệnh `istioctl authn tls-check` đã bị gỡ khỏi istioctl từ bản 1.5, dùng `istioctl x describe` như trên. Để thấy dòng PeerAuthentication STRICT rõ ràng, describe **pod** thay vì svc: `istioctl x describe pod <product-pod> -n dev`. (Không còn DestinationRule — xem giải thích trong `mesh-security.yaml`.)
 
 ## 5. Kịch bản test mTLS
 

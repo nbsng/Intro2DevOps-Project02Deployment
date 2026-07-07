@@ -34,14 +34,17 @@ if [ "${1:-}" = "clean" ]; then
   exit 0
 fi
 
-# Tạo pod nếu chưa có / recreate nếu không ở trạng thái Running.
+# Tạo pod nếu chưa có / recreate nếu chưa Ready.
+# Check Ready thay vì phase: pod có sidecar mà container sleep đã hết hạn
+# vẫn ở phase Running (istio-proxy còn chạy) nhưng Ready=False -> exec sẽ
+# fail "container not found" -> phải tạo lại.
 ensure_pod() {
   local name="$1" sa="$2"
-  local phase
-  phase=$(kubectl get pod "$name" -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
-  if [ "$phase" != "Running" ]; then
-    if [ -n "$phase" ]; then
-      echo "==> pod $name đang ở '$phase' -> tạo lại"
+  local ready
+  ready=$(kubectl get pod "$name" -n "$NS" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "")
+  if [ "$ready" != "True" ]; then
+    if [ -n "$ready" ]; then
+      echo "==> pod $name chưa Ready -> tạo lại"
       kubectl delete pod "$name" -n "$NS" --ignore-not-found --wait=true >/dev/null 2>&1
     fi
     echo "==> tạo pod $name (serviceAccount=$sa)"

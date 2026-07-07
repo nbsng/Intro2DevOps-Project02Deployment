@@ -27,7 +27,7 @@ Kết quả mong đợi:
 
 - Pod YAS hiển thị `2/2` containers.
 - `istio-proxy` tồn tại trong mỗi pod được test.
-- `istioctl x describe` hiển thị PeerAuthentication STRICT và DestinationRule ISTIO_MUTUAL.
+- `istioctl x describe pod <product-pod>` hiển thị PeerAuthentication STRICT. (Không còn DestinationRule: wildcard DR ISTIO_MUTUAL đã bị gỡ vì phá kết nối tới Postgres/Kafka ngoài mesh — xem comment trong `mesh-security.yaml`. Auto-mTLS + STRICT là đủ.)
 - Plaintext curl từ pod không nằm trong mesh thất bại với connection reset (curl exit 56), chứng minh STRICT từ chối traffic không có mTLS.
 
 ## TC2 - Authorization bị chặn

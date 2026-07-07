@@ -3,23 +3,19 @@ kind: PeerAuthentication
 metadata:
   name: dev-mtls-strict
   namespace: dev
-# Luu y: KHONG dung portLevelMtls o day. PeerAuthentication namespace-wide
+# Luu y 1: KHONG dung portLevelMtls o day. PeerAuthentication namespace-wide
 # (khong co selector) khong duoc phep khai bao portLevelMtls - istiod se tu choi
 # manifest. Probe cua kubelet van hoat dong vi sidecar injector tu rewrite
 # httpGet probe sang port 15020; telemetry cho Kiali lay tu Envoy (port 15090)
 # nen khong can mo PERMISSIVE cho port metric 8090.
+#
+# Luu y 2: KHONG them DestinationRule wildcard (host "*") voi ISTIO_MUTUAL.
+# DR do ep sidecar mo mTLS toi MOI dich den, ke ca Postgres/Kafka/Redis/
+# Elasticsearch nam NGOAI mesh (khong co sidecar) -> TLS handshake fail ->
+# JDBC "Connection reset" trong enableSSL -> HikariCP timeout 30s -> service
+# tra 500 hang loat. Auto-mTLS cua Istio tu dong dung mTLS giua cac pod co
+# sidecar, con PeerAuthentication STRICT o tren enforce chieu inbound -
+# vay la du cho yeu cau mTLS, khong can DR.
 spec:
   mtls:
     mode: STRICT
----
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: dev-default-mtls
-  namespace: dev
-spec:
-  host: "*"
-  trafficPolicy:
-    tls:
-      mode: ISTIO_MUTUAL
-

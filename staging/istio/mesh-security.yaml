@@ -3,19 +3,9 @@ kind: PeerAuthentication
 metadata:
   name: staging-mtls-strict
   namespace: staging
-
+# KHONG them DestinationRule wildcard ISTIO_MUTUAL o day - se lam hong ket noi
+# toi Postgres/Kafka/Redis/ES ngoai mesh. Xem giai thich chi tiet trong
+# dev/istio/mesh-security.yaml. Auto-mTLS + STRICT la du.
 spec:
   mtls:
     mode: STRICT
----
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: staging-default-mtls
-  namespace: staging
-spec:
-  host: "*"
-  trafficPolicy:
-    tls:
-      mode: ISTIO_MUTUAL
-
