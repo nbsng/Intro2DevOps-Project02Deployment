@@ -8,7 +8,7 @@ argocd/
     apps.yaml             Tạo 14 Application cho namespace dev
   staging/
     apps.yaml             Tạo 14 Application cho namespace staging
-  copy-yas-resources.sh   Copy các ConfigMap và Secret từ namespace "yas" sang namespace khác
+  copy-resources.sh   Copy các ConfigMap và Secret từ namespace "yas" sang namespace khác
 ```
 
 ## Cách apply (chọn 1 trong 2)
