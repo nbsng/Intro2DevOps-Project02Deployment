@@ -1,0 +1,433 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backoffice-ui-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: backoffice-ui
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/backoffice-ui
+      helm:
+        valueFiles:
+          - $values/dev/backoffice-ui/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: storefront-ui-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: storefront-ui
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/storefront-ui
+      helm:
+        valueFiles:
+          - $values/dev/storefront-ui/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backoffice-bff-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: backoffice-bff
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/backoffice-bff
+      helm:
+        valueFiles:
+          - $values/dev/backoffice-bff/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: storefront-bff-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: storefront-bff
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/storefront-bff
+      helm:
+        valueFiles:
+          - $values/dev/storefront-bff/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cart-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: cart
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/cart
+      helm:
+        valueFiles:
+          - $values/dev/cart/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: customer-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: customer
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/customer
+      helm:
+        valueFiles:
+          - $values/dev/customer/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: inventory-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: inventory
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/inventory
+      helm:
+        valueFiles:
+          - $values/dev/inventory/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: media-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: media
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/media
+      helm:
+        valueFiles:
+          - $values/dev/media/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: order-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: order
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/order
+      helm:
+        valueFiles:
+          - $values/dev/order/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: product-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: product
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/product
+      helm:
+        valueFiles:
+          - $values/dev/product/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sampledata-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: sampledata
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/sampledata
+      helm:
+        valueFiles:
+          - $values/dev/sampledata/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: search-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: search
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/search
+      helm:
+        valueFiles:
+          - $values/dev/search/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tax-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: tax
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/tax
+      helm:
+        valueFiles:
+          - $values/dev/tax/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: swagger-ui-dev
+  namespace: argocd
+  labels:
+    env: dev
+    app: swagger-ui
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/swagger-ui
+      helm:
+        valueFiles:
+          - $values/dev/swagger-ui/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

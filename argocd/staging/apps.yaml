@@ -1,0 +1,433 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backoffice-ui-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: backoffice-ui
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/backoffice-ui
+      helm:
+        valueFiles:
+          - $values/staging/backoffice-ui/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: storefront-ui-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: storefront-ui
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/storefront-ui
+      helm:
+        valueFiles:
+          - $values/staging/storefront-ui/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backoffice-bff-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: backoffice-bff
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/backoffice-bff
+      helm:
+        valueFiles:
+          - $values/staging/backoffice-bff/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: storefront-bff-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: storefront-bff
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/storefront-bff
+      helm:
+        valueFiles:
+          - $values/staging/storefront-bff/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cart-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: cart
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/cart
+      helm:
+        valueFiles:
+          - $values/staging/cart/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: customer-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: customer
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/customer
+      helm:
+        valueFiles:
+          - $values/staging/customer/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: inventory-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: inventory
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/inventory
+      helm:
+        valueFiles:
+          - $values/staging/inventory/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: media-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: media
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/media
+      helm:
+        valueFiles:
+          - $values/staging/media/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: order-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: order
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/order
+      helm:
+        valueFiles:
+          - $values/staging/order/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: product-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: product
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/product
+      helm:
+        valueFiles:
+          - $values/staging/product/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sampledata-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: sampledata
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/sampledata
+      helm:
+        valueFiles:
+          - $values/staging/sampledata/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: search-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: search
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/search
+      helm:
+        valueFiles:
+          - $values/staging/search/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tax-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: tax
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/tax
+      helm:
+        valueFiles:
+          - $values/staging/tax/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: swagger-ui-staging
+  namespace: argocd
+  labels:
+    env: staging
+    app: swagger-ui
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/swagger-ui
+      helm:
+        valueFiles:
+          - $values/staging/swagger-ui/values.yaml
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project02Deployment.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
