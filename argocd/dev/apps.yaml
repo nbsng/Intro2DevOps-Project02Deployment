@@ -431,3 +431,26 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yas-configuration-dev
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/nbsng/Intro2DevOps-Project01.git
+      targetRevision: main
+      path: k8s/charts/yas-configuration
+      helm:
+        parameters:
+          - name: "global.domain"
+            value: "dev.yas.local.com" 
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev 
+  syncPolicy:
+    automated:
+      prune: true
