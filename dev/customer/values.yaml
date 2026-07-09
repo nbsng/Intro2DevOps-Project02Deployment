@@ -2,4 +2,4 @@
 # Branch: main | Commit: 41aa6572
 backend:
   image:
-    tag: "1168ef97"
+    tag: "main"
