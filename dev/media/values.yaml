@@ -3,3 +3,5 @@
 backend:
   image:
     tag: "main"
+  ingress:
+    host: api.dev.yas.local.com
