@@ -2,4 +2,4 @@
 # Branch: v1.0.4 | Commit: 321570bc
 backend:
   image:
-    tag: "v1.0.5"
+    tag: "v1.0.6"
